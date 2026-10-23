@@ -1,37 +1,43 @@
 # Student Brain MVP
 
-A private student workspace for notes and memory, tasks/deadlines, projects, expenses and source-grounded AI questions.
+A private student workspace for notes and memory, tasks/deadlines, projects, expenses, and source-grounded AI Q&A.
 
-## Included in this build branch
-- Supabase email/password sign-up and sign-in.
-- Cloud create/read/update/delete for notes, tasks and projects; expense create/read/delete.
-- Per-user row-level security policies on all four data tables.
-- Dashboard summaries and upcoming tasks.
-- Supabase Edge Function named student-brain-ai. It reads only the authenticated user's records through RLS and sends bounded context to an OpenAI-compatible AI endpoint. It returns source IDs when the model cites them.
-- Responsive dark UI, mobile navigation, and setup guidance.
+## First implementation
+- Supabase email/password authentication.
+- Cloud CRUD for notes, tasks, projects and expenses.
+- Row-level security policies scoped to the signed-in user.
+- Dashboard summaries and task completion.
+- Supabase Edge Function that fetches the current user's saved records using their JWT and asks an OpenAI-compatible model to answer from those records.
+- AI provider credentials stay in Supabase function secrets, never in browser code.
 
 ## Setup
-
 1. Open your Supabase project.
-2. In the SQL Editor, run the full file supabase/schema.sql.
-3. In app.js, replace YOUR_SUPABASE_PROJECT_URL and YOUR_SUPABASE_ANON_OR_PUBLISHABLE_KEY with the project URL and anon/publishable key from Supabase Project Settings → API. These browser keys are public by design; RLS is the security boundary. Never put a service_role/secret key in browser code.
-4. In Supabase Auth settings, enable email/password sign-in. If email confirmation is enabled, verify the email before signing in.
-5. Run the site through a static HTTP server (VS Code Live Server works) or deploy to a static host. Do not use file:// for the deployed app.
-6. Install/use the Supabase CLI and deploy the function:
+2. Run the entire file supabase/schema.sql in Supabase SQL Editor.
+3. In this branch's index.html, replace CONFIG.url with your Supabase Project URL and CONFIG.key with your anon/publishable key. These browser keys are public; RLS protects the data. Never use the service-role key here.
+4. In Supabase Authentication, enable email/password. If email verification is enabled, verify the sign-up email before signing in.
+5. Deploy the static index.html to a static host or run it using VS Code Live Server. Do not open it with file://.
+6. Install the Supabase CLI, sign in and link the project, then deploy:
    supabase login
    supabase link --project-ref YOUR_PROJECT_REF
    supabase functions deploy student-brain-ai
-7. Set AI provider secrets in Supabase, never in GitHub or app.js:
+7. Configure AI provider secrets in Supabase, not in GitHub/browser code:
    supabase secrets set AI_API_KEY=your_provider_key AI_MODEL=gpt-4o-mini AI_BASE_URL=https://api.openai.com/v1
-   AI provider usage may cost money; Supabase database/auth can remain on its free plan. AI chat is unavailable until configured.
-8. In Supabase Auth URL Configuration, set your deployed URL as Site URL and add it to Redirect URLs.
+   A compatible provider and model can be substituted. AI answers are unavailable until the function and secrets are configured.
+8. In Supabase Auth URL Configuration, set the deployed app as Site URL and add it to Redirect URLs.
 
-## Security and limits
-- RLS checks auth.uid() = user_id on every row operation.
-- The Edge Function uses the caller JWT; it does not use a service-role key to bypass RLS.
-- AI requests send selected saved records to the configured AI provider. Avoid storing secrets or highly sensitive data in notes and review provider data policies.
-- This is an MVP, not a completed production audit. AI context currently uses a bounded recent-record set, not hybrid/vector search. Add automated tests, rate limiting, richer source rendering, backups/retention controls and a full deployment test before public launch.
-- WhatsApp integration is a later milestone.
+## Security
+- RLS is enabled on all four user data tables. Each policy requires auth.uid() = user_id.
+- The Edge Function queries with the caller's JWT and does not bypass RLS with a service-role key.
+- The browser only contains the Supabase anon/publishable key. Never commit AI keys or service-role keys.
+- The AI provider receives the selected saved records as context. Avoid saving passwords, API keys or other secrets in notes.
+- This is an MVP, not a production security audit. Before public launch, add tests, rate limiting, data export/deletion controls, and explicit source citation UX.
+
+## Roadmap
+1. Verify auth, RLS, and CRUD with two separate test accounts.
+2. Improve AI source citations and grounding tests.
+3. Add embeddings/hybrid retrieval for older context instead of only the most recent bounded set.
+4. Add calendar/reminders and file attachments.
+5. Add WhatsApp integration after privacy and authentication flows are validated.
 
 ## Important repository note
-The existing main branch contains Hapn college-event website files, so this implementation is isolated on the student-brain-build branch. Do not overwrite main or deploy until you have reviewed and tested this branch.
+This implementation lives on the separate student-brain-build branch. The existing main branch contains Hapn college-events code; it was intentionally not overwritten. Review and test this branch before changing the default branch or deployment settings.
