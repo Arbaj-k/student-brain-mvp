@@ -1,16 +1,11 @@
--- Student Brain MVP schema. Run in Supabase SQL Editor.
-create extension if not exists pgcrypto;
-create table if not exists public.sb_notes(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,title text not null check(char_length(title) between 1 and 140),content text not null default '',tags text not null default '',created_at timestamptz not null default now(),updated_at timestamptz not null default now());
-create table if not exists public.sb_tasks(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,title text not null check(char_length(title) between 1 and 180),details text not null default '',due_date date,priority text not null default 'medium' check(priority in('low','medium','high')),project_name text not null default '',completed boolean not null default false,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
-create table if not exists public.sb_projects(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,title text not null check(char_length(title) between 1 and 140),description text not null default '',status text not null default 'active' check(status in('planned','active','paused','completed')),target_date date,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
-create table if not exists public.sb_expenses(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,title text not null check(char_length(title) between 1 and 140),amount numeric(12,2) not null check(amount>0),category text not null default 'Other',spent_on date not null default current_date,created_at timestamptz not null default now());
-alter table public.sb_notes enable row level security;alter table public.sb_tasks enable row level security;alter table public.sb_projects enable row level security;alter table public.sb_expenses enable row level security;
-drop policy if exists "sb_notes_owner" on public.sb_notes;create policy "sb_notes_owner" on public.sb_notes for all to authenticated using(auth.uid()=user_id) with check(auth.uid()=user_id);
-drop policy if exists "sb_tasks_owner" on public.sb_tasks;create policy "sb_tasks_owner" on public.sb_tasks for all to authenticated using(auth.uid()=user_id) with check(auth.uid()=user_id);
-drop policy if exists "sb_projects_owner" on public.sb_projects;create policy "sb_projects_owner" on public.sb_projects for all to authenticated using(auth.uid()=user_id) with check(auth.uid()=user_id);
-drop policy if exists "sb_expenses_owner" on public.sb_expenses;create policy "sb_expenses_owner" on public.sb_expenses for all to authenticated using(auth.uid()=user_id) with check(auth.uid()=user_id);
-grant usage on schema public to authenticated;grant select,insert,update,delete on public.sb_notes,public.sb_tasks,public.sb_projects,public.sb_expenses to authenticated;
-create or replace function public.sb_touch_updated_at() returns trigger language plpgsql as $$ begin new.updated_at=now();return new;end; $$;
-drop trigger if exists sb_notes_touch on public.sb_notes;create trigger sb_notes_touch before update on public.sb_notes for each row execute function public.sb_touch_updated_at();
-drop trigger if exists sb_tasks_touch on public.sb_tasks;create trigger sb_tasks_touch before update on public.sb_tasks for each row execute function public.sb_touch_updated_at();
-drop trigger if exists sb_projects_touch on public.sb_projects;create trigger sb_projects_touch before update on public.sb_projects for each row execute function public.sb_touch_updated_at();
+-- Safety note: this project already has a live Student Brain schema.
+-- Do NOT run the former sb_notes/sb_tasks/sb_projects/sb_expenses DDL from old commits.
+-- The current frontend stores workspace data in public.profiles.workspace_data.
+-- Existing public.notes/tasks/projects/expenses tables and RLS policies were verified.
+-- No migration is needed for this initial integration.
+-- To inspect tables safely, use Supabase Dashboard -> Table Editor, or run:
+select table_name
+from information_schema.tables
+where table_schema = 'public'
+  and table_name in ('profiles','notes','tasks','projects','expenses','whatsapp_connections')
+order by table_name;
