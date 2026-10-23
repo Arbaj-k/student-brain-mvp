@@ -1,6 +1,6 @@
 // Only the Supabase anon/publishable key belongs in this browser file. Never add a service-role key or AI provider secret.
-const SUPABASE_URL="YOUR_SUPABASE_PROJECT_URL";
-const SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_OR_PUBLISHABLE_KEY";
+const SUPABASE_URL="https://tcthrfpkydcmenxwajfg.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_-PlVhv38rbHYFqsfvJ42AQ_S6-2A7JT";
 const AI_FUNCTION_NAME="student-brain-ai";
 const configured=!SUPABASE_URL.includes("YOUR_")&&!SUPABASE_ANON_KEY.includes("YOUR_")&&window.supabase;
 const client=configured?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
